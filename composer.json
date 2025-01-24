@@ -1,0 +1,29 @@
+{
+    "name": "sbuerk/typo3-test-fixture-extension-adopter",
+    "description": "Helps working with TYPO3 test fixture extensions with typo3/testing-framework functional tests",
+    "type": "composer-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Stefan Bürk",
+            "email": "stefan@buerk.tech",
+            "role": "maintainer"
+        }
+    ],
+    "keywords": [
+        "typo3",
+        "testing",
+        "tests",
+        "functional",
+        "fixture",
+        "extension"
+    ],
+    "require": {
+        "php": "^7.4 || ^8.0",
+        "composer-plugin-api": "^2.1.0"
+    },
+    "require-dev": {
+        "composer/composer": "^2.1",
+        "friendsofphp/php-cs-fixer": "^3.68.1"
+    }
+}
