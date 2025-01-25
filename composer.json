@@ -25,5 +25,10 @@
     "require-dev": {
         "composer/composer": "^2.1",
         "friendsofphp/php-cs-fixer": "^3.68.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "SBUERK\\TestFixtureExtensionAdopter\\": "src/"
+        }
     }
 }
