@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+  
+jobs:
+  code-quality:
+    name: "code quality"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v4
+         
+      - name: "Prepare dependencies"
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s composerInstall"
+         
+      - name: "Lint PHP"
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s lintPhp"
+          
+      - name: "Validate CGL"
+        if: ${{ matrix.php-version < '8.4' }}
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s cgl -n"
+          
+      - name: "Ensure UTF-8 files do not contain BOM"
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s checkBom"
+          
+      - name: "Run PHPStan"
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s phpstan"
