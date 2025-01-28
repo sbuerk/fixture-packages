@@ -312,6 +312,18 @@ case ${TEST_SUITE} in
         ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name phpstan-baseline-${SUFFIX} -e COMPOSER_CACHE_DIR=.cache/composer -e COMPOSER_ROOT_VERSION=${COMPOSER_ROOT_VERSION} ${IMAGE_PHP} "${COMMAND[@]}"
         SUITE_EXIT_CODE=$?
         ;;
+    unit)
+        PHPUNIT_CONFIG_FILE="Build/phpunit/UnitTests.xml"
+        COMMAND=(vendor/bin/phpunit -c ${PHPUNIT_CONFIG_FILE} "$@")
+        ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name unit-${SUFFIX} ${XDEBUG_MODE} -e XDEBUG_CONFIG="${XDEBUG_CONFIG}" ${IMAGE_PHP} "${COMMAND[@]}"
+        SUITE_EXIT_CODE=$?
+        ;;
+    unitRandom)
+        PHPUNIT_CONFIG_FILE="Build/phpunit/UnitTests.xml"
+        COMMAND=(vendor/bin/phpunit -c ${PHPUNIT_CONFIG_FILE} --order-by=random ${PHPUNIT_RANDOM} "$@")
+        ${CONTAINER_BIN} run ${CONTAINER_COMMON_PARAMS} --name unit-random-${SUFFIX} ${XDEBUG_MODE} -e XDEBUG_CONFIG="${XDEBUG_CONFIG}" ${IMAGE_PHP} "${COMMAND[@]}"
+        SUITE_EXIT_CODE=$?
+        ;;
     update)
         # pull typo3/core-testing-* versions of those ones that exist locally
         echo "> pull ghcr.io/typo3/core-testing-* versions of those ones that exist locally"

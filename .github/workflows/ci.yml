@@ -5,7 +5,7 @@ on:
     branches:
       - 'main'
   pull_request:
-  
+
 jobs:
   code-quality:
     name: "code quality"
@@ -33,3 +33,22 @@ jobs:
           
       - name: "Run PHPStan"
         run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s phpstan"
+
+  unit:
+    name: "unit-tests"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php-version: [ '7.4', '8.0', '8.1', '8.2', '8.3', '8.4' ]
+        suite: [ 'unit', 'unitRandom' ]
+    steps:
+
+      - name: "Checkout"
+        uses: actions/checkout@v4
+
+      - name: "Install dependencies"
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s composerInstall"
+
+      - name: "Test ${{ matrix.suite }} with ${{ matrix.php-version }}"
+        run: "Build/Scripts/runTests.sh -b docker -p ${{ matrix.php-version }} -s ${{ matrix.suite }}"
