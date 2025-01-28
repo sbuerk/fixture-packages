@@ -27,7 +27,9 @@
         "friendsofphp/php-cs-fixer": "^3.68.1",
         "phpstan/phpstan": "^2.1.2",
         "phpstan/phpdoc-parser": "^1.30.1",
-        "bnf/phpstan-psr-container": "^1.1.0"
+        "bnf/phpstan-psr-container": "^1.1.0",
+        "phpunit/phpunit": "9.6.22",
+        "phpstan/phpstan-phpunit": "^2.0.4"
     },
     "autoload": {
         "psr-4": {
@@ -36,6 +38,7 @@
     },
     "autoload-dev": {
         "psr-4": {
+            "SBUERK\\TestFixtureExtensionAdopter\\Tests\\Unit\\": "tests/Unit",
             "SBUERK\\PHPStan\\": "Build/phpstan/src/"
         }
     }
