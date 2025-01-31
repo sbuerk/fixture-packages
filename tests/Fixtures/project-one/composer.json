@@ -1,0 +1,28 @@
+{
+  "name": "vendor/project-one",
+  "description": "TYPO3 test extension one",
+  "type": "project",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Stefan Bürk",
+      "email": "stefan@buerk.tech",
+      "role": "maintainer"
+    }
+  ],
+  "require": {
+    "php": "^7.4 || ^8.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Vendor\\ProjectOne": "Classes/"
+    }
+  },
+  "extra": {
+    "sbuerk/fixture-packages": {
+      "paths": [
+        "tests/Fixtures/Extensions/*"
+      ]
+    }
+  }
+}

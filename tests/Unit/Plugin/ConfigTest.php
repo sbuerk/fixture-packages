@@ -2,47 +2,32 @@
 
 declare(strict_types=1);
 
-namespace SBUERK\TestFixtureExtensionAdopter\Tests\Unit\Plugin;
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace SBUERK\FixturePackages\Tests\Unit\Plugin;
 
 use Composer\Composer;
 use Composer\IO\BufferIO;
 use Composer\Package\RootPackage;
-use PHPUnit\Framework\TestCase;
-use SBUERK\TestFixtureExtensionAdopter\Plugin\Config;
+use SBUERK\FixturePackages\Plugin\Config;
+use SBUERK\FixturePackages\Tests\Unit\BaseUnitTestCase;
 
-final class ConfigTest extends TestCase
+/**
+ * @covers \SBUERK\FixturePackages\Plugin\Config
+ */
+final class ConfigTest extends BaseUnitTestCase
 {
-
-    public function tearDown(): void
-    {
-        /**
-         * Reset static property {@see Config::$instance} holding instance used within {@see Config::load()}. This
-         * essential, otherwise tests will fail for different scenarios.
-         */
-        $this->createSubjectClassReflection()->setStaticPropertyValue('instance', null);
-        parent::tearDown();
-    }
-
-    private function createSubject(string $baseDir = '/fake/root'): Config
-    {
-        return new Config($baseDir);
-    }
-
-    private function createSubjectMethodReflection(string $method): \ReflectionMethod
-    {
-        $methodReflection = $this->createSubjectClassReflection()->getMethod($method);
-        if (PHP_VERSION_ID < 801000) {
-            $methodReflection->setAccessible(true);
-        }
-        $methodReflection->setAccessible(true);
-        return $methodReflection;
-    }
-
-    private function createSubjectClassReflection(): \ReflectionClass
-    {
-        return new \ReflectionClass(Config::class);
-    }
-
     public static function normalizePathDataSets(): \Generator
     {
         yield 'Empty string returns empty string' => [
@@ -55,11 +40,11 @@ final class ConfigTest extends TestCase
         ];
         yield 'Drive letter is kept' => [
             'value' => 'C:/',
-            'expectedValue' => 'C:/',
+            'expectedValue' => 'C:',
         ];
         yield 'Windows path backslash is normalized to slash keeping drive letter' => [
             'value' => 'C:\\',
-            'expectedValue' => 'C:/',
+            'expectedValue' => 'C:',
         ];
         yield 'Unix path are trimmed' => [
             'value' => '/some/path/',
@@ -79,10 +64,14 @@ final class ConfigTest extends TestCase
         ];
     }
 
+    /**
+     * @dataProvider normalizePathDataSets
+     * @test
+     */
     public function normalizePathReturnsExpectedValue(string $value, string $expectedValue): void
     {
-        $realpathMethodInvoker = $this->createSubjectMethodReflection('normalizePath');
-        self::assertSame($expectedValue, $realpathMethodInvoker->invoke($this->createSubject(), $value));
+        $realpathMethodInvoker = $this->createClassMethodInvoker(Config::class, 'normalizePath');
+        self::assertSame($expectedValue, $realpathMethodInvoker->invoke(new Config('/fake/root'), $value));
     }
 
     public static function realpathDataSets(): \Generator
@@ -135,8 +124,8 @@ final class ConfigTest extends TestCase
      */
     public function realpathReturnsExpectedValue(string $baseDir, string $path, string $expectedPath): void
     {
-        $realpathMethodInvoker = $this->createSubjectMethodReflection('realpath');
-        self::assertSame($expectedPath, $realpathMethodInvoker->invoke($this->createSubject($baseDir), $path));
+        $realpathMethodInvoker = $this->createClassMethodInvoker(Config::class, 'realpath');
+        self::assertSame($expectedPath, $realpathMethodInvoker->invoke(new Config($baseDir), $path));
     }
 
     public static function handleRootPackageExtraConfigReturnsExpectedConfigArrayDataSets(): \Generator
@@ -159,42 +148,42 @@ final class ConfigTest extends TestCase
             ],
             'expectedOutput' => '',
         ];
-        yield 'Non-array extra->typo3/testing-framework/fixture-extension-paths value is removed' => [
+        yield 'Non-array extra->sbuerk/fixture-packages/paths value is removed' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => false,
+                'sbuerk/fixture-packages' => [
+                    'paths' => false,
                 ],
             ],
             'expectedConfigArray' => [
-                'typo3/testing-framework' => [],
+                'sbuerk/fixture-packages' => [],
             ],
-            'expectedOutput' => '<warning>extra->typo3/testing-framework/fixture-extension-paths must be an array, "boolean" given.</warning>' . PHP_EOL,
+            'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
         ];
-        yield 'Non-array extra->typo3/testing-framework/fixture-extension-paths value is removed keeping other settings' => [
+        yield 'Non-array extra->sbuerk/fixture-packages/paths value is removed keeping other settings' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
+                'sbuerk/fixture-packages' => [
                     'other-configuration' => true,
-                    'fixture-extension-paths' => false,
+                    'paths' => false,
                 ],
             ],
             'expectedConfigArray' => [
-                'typo3/testing-framework' => [
+                'sbuerk/fixture-packages' => [
                     'other-configuration' => true,
                 ],
             ],
-            'expectedOutput' => '<warning>extra->typo3/testing-framework/fixture-extension-paths must be an array, "boolean" given.</warning>' . PHP_EOL,
+            'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
         ];
         yield 'non-relative fixture extension paths are discarded and outputs warning' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         '/absolute/path',
                     ],
                 ],
             ],
             'expectedConfigArray' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [],
+                'sbuerk/fixture-packages' => [
+                    'paths' => [],
                 ],
             ],
             'expectedOutput' => sprintf(
@@ -204,16 +193,16 @@ final class ConfigTest extends TestCase
         ];
         yield 'non-relative fixture exetension paths are discarded and outputs warning, but keeps relative paths' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         '/absolute/path',
                         'relative/path',
                     ],
                 ],
             ],
             'expectedConfigArray' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         'relative/path',
                     ],
                 ],
@@ -225,15 +214,15 @@ final class ConfigTest extends TestCase
         ];
         yield 'relative path leaving composer root is discarded and outputs warning' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         'relative/../../path-outside-composer-root',
                     ],
                 ],
             ],
             'expectedConfigArray' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [],
+                'sbuerk/fixture-packages' => [
+                    'paths' => [],
                 ],
             ],
             'expectedOutput' => sprintf(
@@ -251,12 +240,11 @@ final class ConfigTest extends TestCase
     {
         $rootPackage = new RootPackage('fake/package', '1.0.0', '1.0.0.0');
         $rootPackage->setExtra($extraConfig);
-        $methodReflection =  $this->createSubjectMethodReflection('handleRootPackageExtraConfig');
+        $methodReflection =  $this->createClassMethodInvoker(Config::class, 'handleRootPackageExtraConfig');
         $bufferedIO = new BufferIO();
-        self::assertSame($expectedConfigArray, $methodReflection->invoke($this->createSubject(), $bufferedIO, $rootPackage));
+        self::assertSame($expectedConfigArray, $methodReflection->invoke(new Config('/fake/root'), $bufferedIO, $rootPackage));
         self::assertSame($expectedOutput, $bufferedIO->getOutput());
     }
-
 
     public static function loadCreatesConfigWithExpectedPathsDataSets(): \Generator
     {
@@ -274,29 +262,29 @@ final class ConfigTest extends TestCase
             'expectedPaths' => [],
             'expectedOutput' => '',
         ];
-        yield 'Non-array extra->typo3/testing-framework/fixture-extension-paths value is removed' => [
+        yield 'Non-array extra->sbuerk/fixture-packages/paths value is removed' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => false,
+                'sbuerk/fixture-packages' => [
+                    'paths' => false,
                 ],
             ],
             'expectedPaths' => [],
-            'expectedOutput' => '<warning>extra->typo3/testing-framework/fixture-extension-paths must be an array, "boolean" given.</warning>' . PHP_EOL,
+            'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
         ];
-        yield 'Non-array extra->typo3/testing-framework/fixture-extension-paths value is removed keeping other settings' => [
+        yield 'Non-array extra->sbuerk/fixture-packages/paths value is removed keeping other settings' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
+                'sbuerk/fixture-packages' => [
                     'other-configuration' => true,
-                    'fixture-extension-paths' => false,
+                    'paths' => false,
                 ],
             ],
             'expectedPaths' => [],
-            'expectedOutput' => '<warning>extra->typo3/testing-framework/fixture-extension-paths must be an array, "boolean" given.</warning>' . PHP_EOL,
+            'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
         ];
         yield 'non-relative fixture extension paths are discarded and outputs warning' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         '/absolute/path',
                     ],
                 ],
@@ -309,8 +297,8 @@ final class ConfigTest extends TestCase
         ];
         yield 'non-relative fixture exetension paths are discarded and outputs warning, but keeps relative paths' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         '/absolute/path',
                         'relative/path',
                     ],
@@ -326,8 +314,8 @@ final class ConfigTest extends TestCase
         ];
         yield 'relative path leaving composer root is discarded and outputs warning' => [
             'extraConfig' => [
-                'typo3/testing-framework' => [
-                    'fixture-extension-paths' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
                         'relative/../../path-outside-composer-root',
                     ],
                 ],
@@ -355,7 +343,7 @@ final class ConfigTest extends TestCase
         $bufferedIO = new BufferIO();
         $config = Config::load($composer, $bufferedIO);
         self::assertInstanceOf(Config::class, $config);
-        self::assertSame($expectedPaths, $config->fixtureExtensionPaths(Config::FLAG_PATHS_RELATIVE));
+        self::assertSame($expectedPaths, $config->paths(Config::FLAG_PATHS_RELATIVE));
         self::assertSame($expectedOutput, $bufferedIO->getOutput());
     }
 }

@@ -1,0 +1,43 @@
+{
+  "name": "vendor/project-fixture-path-repository",
+  "description": "test project",
+  "type": "project",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Stefan Bürk",
+      "email": "stefan@buerk.tech",
+      "role": "maintainer"
+    }
+  ],
+  "config": {
+    "allow-plugins": {
+      "sbuerk/fixture-packages": true
+    }
+  },
+  "repositories": {
+    "plugin": {
+      "type": "path",
+      "url": "../../../"
+    }
+  },
+  "require-dev": {
+    "php": "^7.4 || ^8.0",
+    "sbuerk/fixture-packages": "@dev"
+  },
+  "autoload": {
+    "psr-4": {
+      "Vendor\\ProjectOne\\": "Classes/"
+    }
+  },
+  "extra": {
+    "sbuerk/fixture-packages": {
+      "paths": [
+        "Fixtures/Extensions/*",
+        "Fixtures/Mixed/*",
+        "Fixtures/Packages/package-one",
+        "Packages/*/Fixtures/Extensions/*"
+      ]
+    }
+  }
+}

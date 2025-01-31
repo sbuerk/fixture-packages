@@ -15,7 +15,7 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace SBUERK\TestFixtureExtensionAdopter\Plugin;
+namespace SBUERK\FixturePackages\Plugin;
 
 use Composer\Composer;
 use Composer\IO\IOInterface;
@@ -23,6 +23,9 @@ use Composer\IO\NullIO;
 use Composer\Package\RootPackageInterface;
 use Composer\Util\Filesystem;
 
+/**
+ * Handles and stores plugin related configuration.
+ */
 final class Config
 {
     public const FLAG_PATHS_DEFAULT = 0;
@@ -41,7 +44,7 @@ final class Config
     ) {
         $this->baseDir = $this->normalizePath($baseDir);
         $this->config = [
-            'fixture-extension-paths' => [],
+            'paths' => [],
         ];
     }
 
@@ -53,37 +56,42 @@ final class Config
     public function merge(array $config): self
     {
         // Override defaults with given config
-        if (is_array($config['typo3/testing-framework'] ?? null)) {
-            foreach ($config['typo3/testing-framework'] as $key => $value) {
-                if ($key === 'fixture-extension-paths' && is_array($value)) {
-                    $this->config['fixture-extension-paths'] = $value;
+        if (is_array($config['sbuerk/fixture-packages'] ?? null)) {
+            foreach ($config['sbuerk/fixture-packages'] as $key => $value) {
+                if ($key === 'paths' && is_array($value)) {
+                    $this->config['paths'] = $value;
                 }
             }
         }
         return $this;
     }
 
+    public function baseDir(): string
+    {
+        return $this->baseDir;
+    }
+
     /**
      * @param int-mask-of<self::FLAG_*> $flags
      * @return string[]
      */
-    public function fixtureExtensionPaths(int $flags = self::FLAG_PATHS_DEFAULT): array
+    public function paths(int $flags = self::FLAG_PATHS_DEFAULT): array
     {
-        return $this->get('fixture-extension-paths', $flags);
+        return $this->get('paths', $flags);
     }
 
     /**
      * Returns a setting
      *
      * @param int-mask-of<self::FLAG_*> $flags See class FLAG_* constants.
-     * @return ($key is 'fixture-extension-paths' ? string[] : null)
+     * @return ($key is 'paths' ? string[] : null)
      */
     public function get(string $key, int $flags = self::FLAG_PATHS_DEFAULT)
     {
         switch ($key) {
-            case 'fixture-extension-paths':
+            case 'paths':
                 /** @var string[] $paths */
-                $paths = $this->config['fixture-extension-paths'] ?? [];
+                $paths = $this->config['paths'] ?? [];
                 return $this->processFixtureExtensionPaths($paths, $flags);
             default:
                 return null;
@@ -168,6 +176,9 @@ final class Config
     private function normalizePath(string $path): string
     {
         $path = (new Filesystem())->normalizePath($path);
+        if ($path === '') {
+            return $path;
+        }
         if ($path === '/' || rtrim($path, '/') === '') {
             return '/';
         }
@@ -192,21 +203,21 @@ final class Config
     private static function handleRootPackageExtraConfig(IOInterface $io, RootPackageInterface $rootPackage): array
     {
         $rootPackageExtraConfig = $rootPackage->getExtra();
-        if (!isset($rootPackageExtraConfig['typo3/testing-framework'])
-            || !is_array($rootPackageExtraConfig['typo3/testing-framework'])
-            || !isset($rootPackageExtraConfig['typo3/testing-framework']['fixture-extension-paths'])
+        if (!isset($rootPackageExtraConfig['sbuerk/fixture-packages'])
+            || !is_array($rootPackageExtraConfig['sbuerk/fixture-packages'])
+            || !isset($rootPackageExtraConfig['sbuerk/fixture-packages']['paths'])
         ) {
             return $rootPackageExtraConfig;
         }
-        if (!is_array($rootPackageExtraConfig['typo3/testing-framework']['fixture-extension-paths'])) {
+        if (!is_array($rootPackageExtraConfig['sbuerk/fixture-packages']['paths'])) {
             $io->writeError(sprintf(
-                '<warning>extra->typo3/testing-framework/fixture-extension-paths must be an array, "%s" given.</warning>',
-                gettype($rootPackageExtraConfig['typo3/testing-framework']['fixture-extension-paths'])
+                '<warning>extra->sbuerk/fixture-packages/paths must be an array, "%s" given.</warning>',
+                gettype($rootPackageExtraConfig['sbuerk/fixture-packages']['paths'])
             ));
-            unset($rootPackageExtraConfig['typo3/testing-framework']['fixture-extension-paths']);
+            unset($rootPackageExtraConfig['sbuerk/fixture-packages']['paths']);
             return $rootPackageExtraConfig;
         }
-        $fixtureExtensionPaths = $rootPackageExtraConfig['typo3/testing-framework']['fixture-extension-paths'];
+        $fixtureExtensionPaths = $rootPackageExtraConfig['sbuerk/fixture-packages']['paths'];
         if (empty($fixtureExtensionPaths)) {
             return $rootPackageExtraConfig;
         }
@@ -228,7 +239,7 @@ final class Config
             }
             $validPaths[] = $path;
         }
-        $rootPackageExtraConfig['typo3/testing-framework']['fixture-extension-paths'] = $validPaths;
+        $rootPackageExtraConfig['sbuerk/fixture-packages']['paths'] = $validPaths;
         return $rootPackageExtraConfig;
     }
 

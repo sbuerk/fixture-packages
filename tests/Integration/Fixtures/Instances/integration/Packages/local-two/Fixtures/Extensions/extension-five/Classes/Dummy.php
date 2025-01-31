@@ -15,6 +15,12 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace SBUERK\TestFixtureExtensionAdopter;
+namespace Vendor\ExtensionFive;
 
-final class Dummy {}
+final class Dummy
+{
+    public function dummy(): string
+    {
+        return __METHOD__;
+    }
+}
