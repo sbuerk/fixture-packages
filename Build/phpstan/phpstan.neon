@@ -1,6 +1,12 @@
 includes:
-  - phpstan-baseline.neon
+  - ../../vendor/composer/composer/phpstan/rules.neon
   - ../../vendor/bnf/phpstan-psr-container/extension.neon
+  - ../../vendor/phpstan/phpstan-phpunit/extension.neon
+  - ../../vendor/phpstan/phpstan-deprecation-rules/rules.neon
+  - ../../vendor/phpstan/phpstan-symfony/extension.neon
+  - ../../vendor/composer/pcre/extension.neon
+  - ../../vendor/phpstan/phpstan-symfony/rules.neon
+  - phpstan-baseline.neon
 
 services:
   -
@@ -17,7 +23,15 @@ parameters:
   # Use local .cache dir instead of /tmp
   tmpDir: ../../.cache/phpstan
 
-  level: max
+  level: 9
+
+  treatPhpDocTypesAsCertain: false
 
   paths:
     - ../../src/
+    - ../../tmpl/
+
+  ignoreErrors:
+    # unused parameters
+    - '~^Constructor of class SBUERK\\FixturePackages\\Composer\\Repository\\FixturePathRepository has an unused parameter \$dispatcher\.$~'
+    - '~^Constructor of class SBUERK\\FixturePackages\\Composer\\Repository\\FixturePathRepository has an unused parameter \$httpDownloader\.$~'

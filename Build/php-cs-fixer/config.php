@@ -60,6 +60,7 @@ return (new \PhpCsFixer\Config())
             ->ignoreVCSIgnored(true)
             ->in([
                 __DIR__ . '/../../src',
+                __DIR__ . '/../../tmpl',
                 __DIR__ . '/../../Build',
                 __DIR__ . '/../../tests',
             ])

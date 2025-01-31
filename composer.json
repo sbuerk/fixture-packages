@@ -1,5 +1,5 @@
 {
-    "name": "sbuerk/typo3-test-fixture-extension-adopter",
+    "name": "sbuerk/fixture-packages",
     "description": "Helps working with TYPO3 test fixture extensions with typo3/testing-framework functional tests",
     "type": "composer-plugin",
     "license": "GPL-2.0-or-later",
@@ -11,12 +11,11 @@
         }
     ],
     "keywords": [
-        "typo3",
         "testing",
-        "tests",
-        "functional",
         "fixture",
-        "extension"
+        "packages",
+        "typo3",
+        "typo3/testing-framework"
     ],
     "require": {
         "php": "^7.4 || ^8.0",
@@ -29,17 +28,26 @@
         "phpstan/phpdoc-parser": "^1.30.1",
         "bnf/phpstan-psr-container": "^1.1.0",
         "phpunit/phpunit": "9.6.22",
-        "phpstan/phpstan-phpunit": "^2.0.4"
+        "phpstan/phpstan-phpunit": "^2.0.4",
+        "phpstan/phpstan-symfony": "^2.0.2",
+        "phpstan/phpstan-deprecation-rules": "^2.0.1"
     },
     "autoload": {
         "psr-4": {
-            "SBUERK\\TestFixtureExtensionAdopter\\": "src/"
+            "SBUERK\\FixturePackages\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "SBUERK\\TestFixtureExtensionAdopter\\Tests\\Unit\\": "tests/Unit",
+            "SBUERK\\FixturePackages\\Tests\\Unit\\": "tests/Unit",
+            "SBUERK\\FixturePackages\\Tests\\Integration\\": "tests/Integration",
             "SBUERK\\PHPStan\\": "Build/phpstan/src/"
-        }
+        },
+        "classmap": [
+            "tmpl/"
+        ]
+    },
+    "extra": {
+        "class": "SBUERK\\FixturePackages\\Plugin"
     }
 }

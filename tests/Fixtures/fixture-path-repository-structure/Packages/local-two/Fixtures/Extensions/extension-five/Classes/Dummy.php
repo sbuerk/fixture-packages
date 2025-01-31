@@ -15,18 +15,12 @@ declare(strict_types=1);
  * The TYPO3 project - inspiring people to share!
  */
 
-namespace SBUERK\TestFixtureExtensionAdopter\Tests\Unit;
+namespace Vendor\ExtensionFive;
 
-use PHPUnit\Framework\TestCase;
-use SBUERK\TestFixtureExtensionAdopter\Dummy;
-
-final class DummyTest extends TestCase
+final class Dummy
 {
-    /**
-     * @test
-     */
-    public function dummyInstanceCanBeCreatedUsingNewKeyWord(): void
+    public function dummy(): string
     {
-        self::assertIsObject(new Dummy());
+        return __METHOD__;
     }
 }

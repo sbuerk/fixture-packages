@@ -1,43 +1,40 @@
+<?xml version="1.0"?>
 <phpunit
-        backupGlobals="true"
-        cacheResult="false"
-        colors="true"
-        convertDeprecationsToExceptions="true"
-        convertErrorsToExceptions="true"
-        convertWarningsToExceptions="true"
-        convertNoticesToExceptions="true"
-        forceCoversAnnotation="false"
-        processIsolation="false"
-        stopOnError="false"
-        stopOnFailure="false"
-        stopOnIncomplete="false"
-        stopOnSkipped="false"
-        verbose="false"
-        beStrictAboutTestsThatDoNotTestAnything="false"
-        failOnWarning="true"
-        failOnRisky="true"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.3/phpunit.xsd"
+  backupGlobals="true"
+  cacheResult="false"
+  colors="true"
+  convertDeprecationsToExceptions="true"
+  convertErrorsToExceptions="true"
+  convertWarningsToExceptions="true"
+  convertNoticesToExceptions="true"
+  forceCoversAnnotation="false"
+  processIsolation="false"
+  stopOnError="false"
+  stopOnFailure="false"
+  stopOnIncomplete="false"
+  stopOnSkipped="false"
+  verbose="false"
+  beStrictAboutTestsThatDoNotTestAnything="false"
+  failOnWarning="true"
+  failOnRisky="true"
 >
-    <testsuites>
-        <testsuite name="Unit tests">
-            <!--
-                This path either needs an adaption in extensions, or an extension's
-                test location path needs to be given to phpunit.
-            -->
-            <directory>../../tests/Unit/</directory>
-        </testsuite>
-    </testsuites>
-    <!-- @todo: change tag to 'coverage' when TF requires phpunit > 9 -->
-    <filter>
-        <!-- @todo: change tag to 'include' when TF requires phpunit > 9 -->
-        <whitelist>
-            <!--
-                This path needs an adaption in extensions, when coverage statistics are wanted.
-            -->
-            <directory>../../src/</directory>
-        </whitelist>
-    </filter>
-    <php>
-        <ini name="display_errors" value="1" />
-        <ini name="error_reporting" value="E_ALL"/>
-    </php>
+  <coverage>
+    <include>
+      <directory>../../src/</directory>
+    </include>
+  </coverage>
+  <testsuites>
+    <testsuite name="Unit tests">
+      <directory>../../tests/Unit/</directory>
+    </testsuite>
+    <testsuite name="Integration tests">
+      <directory>../../tests/Integration/</directory>
+    </testsuite>
+  </testsuites>
+  <php>
+    <ini name="display_errors" value="1"/>
+    <ini name="error_reporting" value="E_ALL"/>
+  </php>
 </phpunit>
