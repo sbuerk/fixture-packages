@@ -28,7 +28,7 @@ changelog:
           - breaking-change
           - enhancement
           - feature
-    - title: Other Changes
+    - title: Changes
       labels:
         - "*"
       exclude:
