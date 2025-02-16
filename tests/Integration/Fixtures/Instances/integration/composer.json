@@ -28,7 +28,10 @@
   "autoload": {
     "psr-4": {
       "Vendor\\ProjectOne\\": "Classes/"
-    }
+    },
+    "files": [
+      "File/SomeClass.php"
+    ]
   },
   "extra": {
     "sbuerk/fixture-packages": {
