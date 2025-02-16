@@ -85,10 +85,10 @@ schema to the extra-section and is used to configure paths to scan for extension
 
 This plugin create two files:
 
-| File                               | Description                                                                |
-|------------------------------------|----------------------------------------------------------------------------|
-| vendor/sbuerk/fixture-packages.php | Returns an array with fixture package information.                         |
-| vendor/sbuerk/FixturePackages.php  | Provides `FixturePackages` to work with fixture package information state. |
+| File                                       | Description                                                                         |
+|--------------------------------------------|-------------------------------------------------------------------------------------|
+| vendor/sbuerk/fixture-packages.php         | Returns an array with fixture package information.                                  |
+| vendor/sbuerk/AvailableFixturePackages.php | Provides `AvailableFixturePackages` to work with fixture package information state. |
 
 > [!NOTE]
 > These files are not generated to be used casually, but provides
@@ -121,8 +121,8 @@ This is not done automatically yet, but can be done easily by copy & paste
  * allow composer package name or extension keys of fixture extension in
  * {@see \TYPO3\TestingFramework\Core\Functional\FunctionalTestCase::$testExtensionToLoad}.
  */
-if (class_exists(\SBUERK\FixturePackages::class)) {
-    (new \SBUERK\FixturePackages())->adoptFixtureExtensions();
+if (class_exists(\SBUERK\AvailableFixturePackages::class)) {
+    (new \SBUERK\AvailableFixturePackages())->adoptFixtureExtensions();
 }
 ```
 
@@ -169,8 +169,8 @@ Usually, the bootstrap file for functional tests looks similar to the following:
      * allow composer package name or extension keys of fixture extension in
      * {@see \TYPO3\TestingFramework\Core\Functional\FunctionalTestCase::$testExtensionToLoad}.
      */
-    if (class_exists(\SBUERK\FixturePackages::class)) {
-        (new \SBUERK\FixturePackages())->adoptFixtureExtensions();
+    if (class_exists(\SBUERK\AvailableFixturePackages::class)) {
+        (new \SBUERK\AvailableFixturePackages())->adoptFixtureExtensions();
     }
 
     $testbase = new \TYPO3\TestingFramework\Core\Testbase();

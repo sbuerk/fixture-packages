@@ -161,16 +161,27 @@ final class FixturePackagesService
             $fixturePackagesFile,
             '<?php return ' . $this->dumpToPhpCode($data) . ';' . "\n"
         );
-        if (file_exists($dataPath . '/FixturePackages.php')) {
-            $filesystem->unlink($dataPath . '/FixturePackages.php');
+        if (!file_exists(__DIR__ . '/../../tmpl/AvailableFixturePackages.php')) {
+            $io->writeError('>> [sbuerk/fixture-packages] Could not find AvailableFixturePackages class template.');
+            return;
         }
-        $filesystem->copy(__DIR__ . '/../../tmpl/FixturePackages.php', $dataPath . '/FixturePackages.php');
+        if (file_exists($dataPath . '/AvailableFixturePackages.php')
+            && hash_file('sha256', $dataPath . '/AvailableFixturePackages.php') !== hash_file('sha256', __DIR__ . '/../../tmpl/AvailableFixturePackages.php')
+        ) {
+            $filesystem->unlink($dataPath . '/AvailableFixturePackages');
+            $io->info('>> [sbuerk/fixture-packages] AvailableFixturePackages.php exists, but content changed. Remove it.');
+        }
+        if (!file_exists($dataPath . '/AvailableFixturePackages.php')) {
+            $io->info('>> [sbuerk/fixture-packages] Provide AvailableFixturePackages.php ');
+            $filesystem->copy(__DIR__ . '/../../tmpl/AvailableFixturePackages.php', $dataPath . '/AvailableFixturePackages.php');
+        }
         $rootPackage = $composer->getPackage();
         $devAutoload = $rootPackage->getDevAutoload();
         if (!isset($devAutoload['classmap']) || !is_array($devAutoload['classmap'])) {
             $devAutoload['classmap'] = [];
         }
-        $classFile = $composer->getConfig()->get('vendor-dir', \Composer\Config::RELATIVE_PATHS) . '/sbuerk/FixturePackages.php';
+        // Add AvailableFixturePackages class to root package autoload-dev
+        $classFile = $composer->getConfig()->get('vendor-dir', \Composer\Config::RELATIVE_PATHS) . '/sbuerk/AvailableFixturePackages.php';
         $devAutoload['classmap'][] = $classFile;
         $rootPackage->setDevAutoload($devAutoload);
     }

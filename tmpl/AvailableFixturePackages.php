@@ -18,9 +18,9 @@ declare(strict_types=1);
 namespace SBUERK;
 
 /**
- * This file will be copied to `<vendor-dir>/sbuerk/FixturePackages.php`.
+ * This file will be copied to `<vendor-dir>/sbuerk/AvailableFixturePackages.php`.
  */
-final class FixturePackages
+final class AvailableFixturePackages
 {
     private string $dataFile = __DIR__ . 'fixture-packages.php';
     private string $composerPackageManagerClassName = 'TYPO3\\TestingFramework\\Composer\\ComposerPackageManager';
