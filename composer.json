@@ -19,7 +19,8 @@
     ],
     "require": {
         "php": "^7.4 || ^8.0",
-        "composer-plugin-api": "^2.1.0"
+        "composer-runtime-api": "^2.2.2",
+        "composer-plugin-api": "^2.3.0"
     },
     "require-dev": {
         "composer/composer": "^2.1",
@@ -48,6 +49,9 @@
         ]
     },
     "extra": {
-        "class": "SBUERK\\FixturePackages\\Plugin"
+        "class": "SBUERK\\FixturePackages\\Plugin",
+        "plugin-modifies-downloads": true,
+        "plugin-modifies-install-path": true,
+        "plugin-optional": true
     }
 }
