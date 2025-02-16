@@ -91,7 +91,7 @@ final class AvailableFixturePackages
                 /**
                  * @param array{name: string, type: string, path: string, extra: array<mixed>} $item
                  */
-                static fn(array $item): bool => !in_array($item['type'], $filterComposerTypes, true)
+                static fn(array $item): bool => in_array($item['type'], $filterComposerTypes, true)
             );
         }
         return $packages;
