@@ -1,5 +1,10 @@
 # Composer plugin `sbuerk/fixture-packages`
 
+> [!IMPORTANT]
+> **EXPERIMENTAL** for now, behaviour and configuration can and will change at
+> any point in a breaking way until baseline implementation has been proven as
+> battle-proof and 1.x is released.
+
 Package `sbuerk/fixture-packages` provides a development context composer plugin,
 which allows to define paths to scan for composer packages and adopt `autoload`
 registrations from package as `autoload-dev` registration of the root package,

@@ -137,7 +137,14 @@ final class AutoloadMerger
         if (!$this->isValidPsrNamespace($psr)) {
             return;
         }
-        $modifiedNamespacePath = $this->modifyPackageNamespacePath($package, $namespacePath);
+        if (empty($package->getDistUrl())) {
+            // @todo Throw / log error ?
+            return;
+        }
+        $modifiedNamespacePath = $this->modifyPackageNamespacePath($io, $package, $namespacePath);
+        if ($modifiedNamespacePath === $namespacePath) {
+            return;
+        }
         $devAutoload = $rootPackage->getDevAutoload();
         // Ensure $psr section exists
         if (!isset($devAutoload[$psr]) || !is_array($devAutoload[$psr])) {
@@ -200,7 +207,10 @@ final class AutoloadMerger
             if (!is_string($namespacePath)) {
                 continue;
             }
-            $modifiedNamespacePath = $this->modifyPackageNamespacePath($package, $namespacePath);
+            $modifiedNamespacePath = $this->modifyPackageNamespacePath($io, $package, $namespacePath);
+            if ($modifiedNamespacePath === $namespacePath) {
+                continue;
+            }
             if (isset($devAutoload[$type])
                 && is_array($devAutoload[$type])
                 && in_array($modifiedNamespacePath, $devAutoload[$type], true)
@@ -234,12 +244,24 @@ final class AutoloadMerger
     /**
      * Prefix package source url (relative path) to namespace.
      */
-    private function modifyPackageNamespacePath(PackageInterface $package, string $namespacePath): string
+    private function modifyPackageNamespacePath(IOInterface $io, PackageInterface $package, string $namespacePath): string
     {
         $filesystem = new Filesystem();
-        return rtrim((string)$package->getSourceUrl(), '/')
-            . '/'
-            . $filesystem->normalizePath($namespacePath);
+        $usePath = $package->getDistUrl();
+        $io->debug(sprintf('   NAME.....: %s', $package->getName()));
+        $io->debug(sprintf('   TYPE.....: %s', $package->getType()));
+        $io->debug(sprintf('   SOURCE...: %s', $package->getSourceUrl()));
+        $io->debug(sprintf('   DIST.....: %s', $package->getDistUrl()));
+        $io->debug(sprintf('   TARGET...: %s', $package->getTargetDir()));
+        $io->debug(sprintf('   USE......: %s', $usePath));
+        if (empty($package->getDistUrl())) {
+            $io->writeError(sprintf('Package distUrl must not be empty for "%s"', $package->getName()));
+            return $namespacePath;
+        }
+        return ltrim(
+            rtrim((string)$package->getDistUrl(), '/') . '/' . $filesystem->normalizePath($namespacePath),
+            '/'
+        );
     }
 
     /**

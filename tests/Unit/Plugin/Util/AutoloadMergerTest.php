@@ -35,21 +35,21 @@ final class AutoloadMergerTest extends BaseUnitTestCase
      * Create pseudo package instance to be used in tests.
      *
      * @param string $name
-     * @param string $sourceUrl
+     * @param string $distUrl
      * @param array{"psr-0"?: array<string, array<string>|string>, "psr-4"?: array<string, array<string>|string>, classmap?: list<string>, files?: list<string>} $autoload
      * @param array{"psr-0"?: array<string, array<string>|string>, "psr-4"?: array<string, array<string>|string>, classmap?: list<string>, files?: list<string>} $devAutoload
      * @return BasePackage
      */
     private static function createPackage(
         string $name,
-        string $sourceUrl,
+        string $distUrl,
         array $autoload = [],
         array $devAutoload = []
     ): BasePackage {
         $package = new Package($name, '1.0.0', '1.0.0.0');
         $package->setType('library');
-        $package->setSourceType('');
-        $package->setSourceUrl($sourceUrl);
+        $package->setDistType('');
+        $package->setDistUrl($distUrl);
         $package->setAutoload($autoload);
         $package->setDevAutoload($devAutoload);
         return $package;
@@ -103,8 +103,9 @@ final class AutoloadMergerTest extends BaseUnitTestCase
         string $namespacePath,
         string $expectedReturnValue
     ): void {
+        $io = new NullIO();
         $invoker = $this->createClassMethodInvoker(AutoloadMerger::class, 'modifyPackageNamespacePath');
-        self::assertSame($expectedReturnValue, $invoker->invoke(new AutoloadMerger(), $package, $namespacePath));
+        self::assertSame($expectedReturnValue, $invoker->invoke(new AutoloadMerger(), $io, $package, $namespacePath));
     }
 
     public static function mergePsrNamespaceDataSets(): \Generator
