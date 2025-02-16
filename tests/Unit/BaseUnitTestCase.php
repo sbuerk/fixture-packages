@@ -92,4 +92,13 @@ abstract class BaseUnitTestCase extends TestCase
         }
         return new \ReflectionClass($object);
     }
+
+    protected function setClassPropertyValue(object $object, string $propertyName, $value): void
+    {
+        $property = (new \ReflectionProperty($object, $propertyName));
+        if (PHP_VERSION_ID < 801000) {
+            $property->setAccessible(true);
+        }
+        $property->setValue($object, $value);
+    }
 }
