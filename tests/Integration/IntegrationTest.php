@@ -19,45 +19,35 @@ namespace SBUERK\FixturePackages\Tests\Integration;
 
 use Composer\IO\BufferIO;
 use Composer\IO\IOInterface;
+use SBUERK\AvailableFixturePackages;
 use Symfony\Component\Console\Output\StreamOutput;
 
 final class IntegrationTest extends IntegrationTestCase
 {
     private ?IOInterface $io = null;
 
-    private bool $created = false;
     protected function setUp(): void
     {
         $this->io = new BufferIO('', StreamOutput::VERBOSITY_DEBUG);
         parent::setUp();
-        if (!$this->created) {
-            $this->copyInstanceTemplate('integration');
-            $this->composerInstall($this->testInstancePath(), $this->io);
-            $this->created = true;
-        } else {
-            if (!is_dir($this->testInstancePath())) {
-                self::fail('Test instance does not exists from first setup.');
-            }
-            chdir($this->testInstancePath());
+        $this->copyInstanceTemplate('integration');
+        $this->composerInstall($this->testInstancePath(), $this->io);
+    }
+
+    private function createAvailableFixturePackagesForFile(string $file): AvailableFixturePackages
+    {
+        $subject = new AvailableFixturePackages();
+        $property = new \ReflectionProperty($subject, 'dataFile');
+        if (PHP_VERSION_ID < 801000) {
+            $property->setAccessible(true);
         }
+        $property->setValue($subject, $file);
+        return $subject;
     }
 
-    /**
-     * @test
-     */
-    public function exportFileExists(): void
+    private function integrationTestInstanceExpectedTypo3Extensions(string $expectedRelativePath): array
     {
-        self::assertFileExists($this->testInstancePath() . '/vendor/sbuerk/fixture-packages.php');
-    }
-
-    /**
-     * @depends exportFileExists
-     * @test
-     */
-    public function exportFileReturnsExpectedExport(): void
-    {
-        $expectedRelativePath = $this->testInstancePath() . '/vendor/sbuerk/../..';
-        $expected = [
+        return [
             'vendor/test-extension-one' => [
                 'name' => 'vendor/test-extension-one',
                 'type' => 'typo3-cms-extension',
@@ -121,6 +111,50 @@ final class IntegrationTest extends IntegrationTestCase
                 ],
             ],
         ];
+    }
+
+    /**
+     * @test
+     */
+    public function fixturePackagesFileExists(): void
+    {
+        self::assertFileExists($this->testInstancePath() . '/vendor/sbuerk/fixture-packages.php');
+    }
+
+    /**
+     * @test
+     */
+    public function availableFixturePackagesClassFileExists(): void
+    {
+        self::assertFileExists($this->testInstancePath() . '/vendor/sbuerk/AvailableFixturePackages.php');
+    }
+
+    /**
+     * @test
+     */
+    public function exportFileReturnsExpectedExport(): void
+    {
+        $this->fixturePackagesFileExists();
+        $this->availableFixturePackagesClassFileExists();
+
+        $expectedRelativePath = $this->testInstancePath() . '/vendor/sbuerk/../..';
+        $expected = $this->integrationTestInstanceExpectedTypo3Extensions($expectedRelativePath);
+
         self::assertSame($expected, include $this->testInstancePath() . '/vendor/sbuerk/fixture-packages.php');
+    }
+
+    /**
+     * @test
+     */
+    public function availableFixturePackagesPackagesReturnExpectedPackageNames(): void
+    {
+        $this->fixturePackagesFileExists();
+        $this->availableFixturePackagesClassFileExists();
+
+        $expectedRelativePath = $this->testInstancePath() . '/vendor/sbuerk/../..';
+        $expected = array_keys($this->integrationTestInstanceExpectedTypo3Extensions($expectedRelativePath));
+
+        $subject = $this->createAvailableFixturePackagesForFile($this->testInstancePath() . '/vendor/sbuerk/fixture-packages.php');
+        self::assertSame($expected, $subject->packageNames());
     }
 }

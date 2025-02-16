@@ -74,6 +74,7 @@ abstract class IntegrationTestCase extends TestCase
             self::fail(sprintf('Template path "%s" does not exists, could not copy as test instance "%s".', $fullTemplatePath, $identifier));
         }
         $this->composerFileSystem->emptyDirectory($fullTestInstancePath);
+        $this->writeTestFootprintFile($fullTestInstancePath, $identifier);
         if (!$this->composerFileSystem->copy($fullTemplatePath, $fullTestInstancePath)) {
             self::fail(sprintf('Failed to copy template path "%s" to "%s".', $fullTemplatePath, $fullTestInstancePath));
         }
@@ -96,17 +97,32 @@ abstract class IntegrationTestCase extends TestCase
 
     protected function identifier(): string
     {
-        return hash('sha256', \json_encode([
+        return hash('sha256', \json_encode($this->instanceFootprintData()));
+    }
+
+    protected function writeTestFootprintFile(string $path, ?string $identifier = null): void
+    {
+        file_put_contents(
+            rtrim($path, '/') . '/' . 'test-footprint.json',
+            \json_encode([
+                'identifier' => $identifier ?? $this->identifier(),
+                'data' => $this->instanceFootprintData(),
+            ], JSON_PRETTY_PRINT)
+        );
+    }
+
+    protected function instanceFootprintData(): array
+    {
+        return [
             'classFQN' => static::class,
             'name' => $this->getName(),
-        ]));
+        ];
     }
 
     protected function composerInstall(string $baseDir, ?IOInterface $io): int
     {
         chdir($baseDir);
         $io ??= new NullIO();
-        $composerConfig = Factory::createConfig($io, $baseDir);
         $composer = Factory::create($io);
         $install = Installer::create($io, $composer);
         $composer->getInstallationManager()->setOutputProgress(false);
