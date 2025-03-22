@@ -62,6 +62,11 @@ final class FixturePathRepository extends ArrayRepository implements Configurabl
     private $options;
 
     /**
+     * @var string[]
+     */
+    private array $adoptAutoloadSelection = [];
+
+    /**
      * Initializes path repository.
      *
      * @param array{url?: string, options?: array{symlink?: bool, reference?: string, relative?: bool, versions?: array<string, string>}} $repoConfig
@@ -71,7 +76,7 @@ final class FixturePathRepository extends ArrayRepository implements Configurabl
         if (!isset($repoConfig['url'])) {
             throw new \RuntimeException('You must specify the `url` configuration for the path repository');
         }
-
+        $this->adoptAutoloadSelection = (isset($repoConfig['selection']) && is_array($repoConfig['selection']) ? $repoConfig['selection'] : []);
         $this->loader = new ArrayLoader(null, true);
         $this->url = Platform::expandPath($repoConfig['url']);
         $this->process = $process ?? new ProcessExecutor($io);
@@ -94,6 +99,24 @@ final class FixturePathRepository extends ArrayRepository implements Configurabl
     public function getRepoConfig(): array
     {
         return $this->repoConfig;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getAdoptAutoloadSelection(): array
+    {
+        return $this->adoptAutoloadSelection;
+    }
+
+    public function adoptAutoload(): bool
+    {
+        return in_array('autoload', $this->adoptAutoloadSelection, true);
+    }
+
+    public function adoptAutoloadDev(): bool
+    {
+        return in_array('autoload-dev', $this->adoptAutoloadSelection, true);
     }
 
     /**

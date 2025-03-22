@@ -58,7 +58,7 @@ final class FixturePackagesService
                 );
                 continue;
             }
-            $autoloadMerger->mergeAutoloadToAutoloadDev($io, $composer->getPackage(), $package);
+            $autoloadMerger->mergeToAutoloadDev($io, $composer->getPackage(), $package);
             $adoptedPackages[] = $package;
         }
         $this->writeFixturesPackagesStateFile($io, $config, $composer, ...$adoptedPackages);
@@ -95,16 +95,19 @@ final class FixturePackagesService
     private function createPreparedRepositoryManager(Config $config, Composer $composer, IOInterface $io): RepositoryManager
     {
         $repositoryManager = $this->createRepositoryManager($io, $composer);
-        foreach ($config->paths(Config::FLAG_PATHS_RELATIVE) as $path) {
-            $repositoryManager->addRepository($this->createRepositoryForPath($repositoryManager, $composer, $io, $path));
+        foreach ($config->paths(Config::FLAG_PATHS_RELATIVE) as $path => $selection) {
+            // @todo pass down selections ?
+            $repositoryManager->addRepository($this->createRepositoryForPath($repositoryManager, $composer, $io, $path, $selection));
         }
         return $repositoryManager;
     }
 
     /**
      * Create fixture-path repository for given path.
+     *
+     * @param string[] $selection
      */
-    private function createRepositoryForPath(RepositoryManager $repositoryManager, Composer $composer, IOInterface $io, string $path): RepositoryInterface
+    private function createRepositoryForPath(RepositoryManager $repositoryManager, Composer $composer, IOInterface $io, string $path, array $selection): RepositoryInterface
     {
         return RepositoryFactory::fromString(
             $io,
@@ -112,6 +115,7 @@ final class FixturePackagesService
             JsonFile::encode([
                 'type' => 'fixture-path',
                 'url' => $path,
+                'selection' => $selection,
             ]),
             true,
             $repositoryManager

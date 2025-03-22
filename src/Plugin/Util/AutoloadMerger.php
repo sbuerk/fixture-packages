@@ -21,6 +21,7 @@ use Composer\IO\IOInterface;
 use Composer\Package\PackageInterface;
 use Composer\Package\RootPackageInterface;
 use Composer\Util\Filesystem;
+use SBUERK\FixturePackages\Composer\Repository\FixturePathRepository;
 
 /**
  * Provides merging {@see PackageInterface} autoload configuration to
@@ -38,7 +39,7 @@ final class AutoloadMerger
      * @todo Implement `files` namespace merging.
      * @todo Implement `classmap` namespace merging.
      */
-    public function mergeAutoloadToAutoloadDev(
+    public function mergeToAutoloadDev(
         IOInterface $io,
         RootPackageInterface $rootPackage,
         PackageInterface $package
@@ -56,10 +57,18 @@ final class AutoloadMerger
         RootPackageInterface $rootPackage,
         PackageInterface $package
     ): void {
-        $this->mergePsrNamespaces($io, $rootPackage, $package, 'psr-0');
-        $this->mergePsrNamespaces($io, $rootPackage, $package, 'psr-4');
-        $this->mergeSimpleNamespace($io, $rootPackage, $package, 'files');
-        $this->mergeSimpleNamespace($io, $rootPackage, $package, 'classmap');
+        if ($this->adoptPackageAutoload($package)) {
+            $this->mergeAutoloadPsrNamespaces($io, $rootPackage, $package, 'psr-0');
+            $this->mergeAutoloadPsrNamespaces($io, $rootPackage, $package, 'psr-4');
+            $this->mergeAutoloadSimpleNamespace($io, $rootPackage, $package, 'files');
+            $this->mergeAutoloadSimpleNamespace($io, $rootPackage, $package, 'classmap');
+        }
+        if ($this->adoptPackageAutoloadDev($package)) {
+            $this->mergeAutoloadDevPsrNamespaces($io, $rootPackage, $package, 'psr-0');
+            $this->mergeAutoloadDevPsrNamespaces($io, $rootPackage, $package, 'psr-4');
+            $this->mergeAutoloadDevSimpleNamespace($io, $rootPackage, $package, 'files');
+            $this->mergeAutoloadDevSimpleNamespace($io, $rootPackage, $package, 'classmap');
+        }
     }
 
     /**
@@ -68,7 +77,7 @@ final class AutoloadMerger
      * Modifying namespace paths by prefixing $package->getSourceUrl() ensures correct path information,
      * otherwise composer dump-autoload will create invalid class autoloader instances and paths.
      */
-    private function mergePsrNamespaces(
+    private function mergeAutoloadPsrNamespaces(
         IOInterface $io,
         RootPackageInterface $rootPackage,
         PackageInterface $package,
@@ -78,6 +87,58 @@ final class AutoloadMerger
             return;
         }
         $autoload = $package->getAutoload();
+        if ($autoload === [] || !isset($autoload[$psr]) || !is_array($autoload[$psr])) {
+            return;
+        }
+        foreach ($autoload[$psr] as $namespace => $namespacePaths) {
+            if (!is_string($namespace)) {
+                continue;
+            }
+            if (is_string($namespacePaths)) {
+                $this->mergePsrNamespace(
+                    $io,
+                    $rootPackage,
+                    $package,
+                    $psr,
+                    $namespace,
+                    $namespacePaths
+                );
+                continue;
+            }
+            if (is_array($namespacePaths) && $namespacePaths !== []) {
+                foreach ($namespacePaths as $namespacePath) {
+                    if (!is_string($namespacePath)) {
+                        continue;
+                    }
+                    $this->mergePsrNamespace(
+                        $io,
+                        $rootPackage,
+                        $package,
+                        $psr,
+                        $namespace,
+                        $namespacePath
+                    );
+                }
+            }
+        }
+    }
+
+    /**
+     * Merge all package autoload psr-o and psr-4 namespaces from `$package` to `$rootPackage` autoload-dev.
+     *
+     * Modifying namespace paths by prefixing $package->getSourceUrl() ensures correct path information,
+     * otherwise composer dump-autoload will create invalid class autoloader instances and paths.
+     */
+    private function mergeAutoloadDevPsrNamespaces(
+        IOInterface $io,
+        RootPackageInterface $rootPackage,
+        PackageInterface $package,
+        string $psr
+    ): void {
+        if (!$this->isValidPsrNamespace($psr)) {
+            return;
+        }
+        $autoload = $package->getDevAutoload();
         if ($autoload === [] || !isset($autoload[$psr]) || !is_array($autoload[$psr])) {
             return;
         }
@@ -184,7 +245,7 @@ final class AutoloadMerger
     /**
      * Merge package $type namespaces to $rootPackage, prefixing paths with relative $package path.
      */
-    private function mergeSimpleNamespace(
+    private function mergeAutoloadSimpleNamespace(
         IOInterface $io,
         RootPackageInterface $rootPackage,
         PackageInterface $package,
@@ -194,6 +255,66 @@ final class AutoloadMerger
             return;
         }
         $autoload = $package->getAutoload();
+        if (!isset($autoload[$type]) || !is_array($autoload[$type]) || $autoload[$type] === []) {
+            $io->debug(sprintf(
+                '<info>Package "%s" does not have an "%s" autoload section. Nothing to merge.</info>',
+                $package->getName(),
+                $type
+            ));
+            return;
+        }
+        $devAutoload = $rootPackage->getDevAutoload();
+        foreach ($autoload[$type] as $namespacePath) {
+            if (!is_string($namespacePath)) {
+                continue;
+            }
+            $modifiedNamespacePath = $this->modifyPackageNamespacePath($io, $package, $namespacePath);
+            if ($modifiedNamespacePath === $namespacePath) {
+                continue;
+            }
+            if (isset($devAutoload[$type])
+                && is_array($devAutoload[$type])
+                && in_array($modifiedNamespacePath, $devAutoload[$type], true)
+            ) {
+                $io->debug(sprintf(
+                    '<info>Package"%s" namespace "%s" path "%s" already exists in root package as "%s". Skipped.</info>',
+                    $package->getName(),
+                    $type,
+                    $namespacePath,
+                    $modifiedNamespacePath
+                ));
+                continue;
+            }
+            // Ensure that $type section exists
+            if (!isset($devAutoload[$type]) || !is_array($devAutoload[$type])) {
+                $devAutoload[$type] = [];
+            }
+            $devAutoload[$type][] = $modifiedNamespacePath;
+            /** @var array{"psr-0"?: array<string, array<string>|string>, "psr-4"?: array<string, array<string>|string>, classmap?: list<string>, files?: list<string>} $devAutoload */
+            $rootPackage->setDevAutoload($devAutoload);
+            $this->writeAdoptedNamespaceMessage(
+                $io,
+                $type,
+                $package->getName(),
+                '',
+                $modifiedNamespacePath
+            );
+        }
+    }
+
+    /**
+     * Merge package $type namespaces to $rootPackage, prefixing paths with relative $package path.
+     */
+    private function mergeAutoloadDevSimpleNamespace(
+        IOInterface $io,
+        RootPackageInterface $rootPackage,
+        PackageInterface $package,
+        string $type
+    ): void {
+        if (!$this->isValidNamespace($type)) {
+            return;
+        }
+        $autoload = $package->getDevAutoload();
         if (!isset($autoload[$type]) || !is_array($autoload[$type]) || $autoload[$type] === []) {
             $io->debug(sprintf(
                 '<info>Package "%s" does not have an "%s" autoload section. Nothing to merge.</info>',
@@ -308,5 +429,23 @@ final class AutoloadMerger
     private function isValidNamespace(string $type): bool
     {
         return $type === 'files' || $type === 'classmap';
+    }
+
+    private function adoptPackageAutoload(PackageInterface $package): bool
+    {
+        $repository = $package->getRepository();
+        if (! $repository instanceof FixturePathRepository) {
+            return false;
+        }
+        return $repository->adoptAutoload();
+    }
+
+    private function adoptPackageAutoloadDev(PackageInterface $package): bool
+    {
+        $repository = $package->getRepository();
+        if (! $repository instanceof FixturePathRepository) {
+            return false;
+        }
+        return $repository->adoptAutoloadDev();
     }
 }

@@ -73,7 +73,7 @@ final class Config
 
     /**
      * @param int-mask-of<self::FLAG_*> $flags
-     * @return string[]
+     * @return array<string, string[]>
      */
     public function paths(int $flags = self::FLAG_PATHS_DEFAULT): array
     {
@@ -84,13 +84,13 @@ final class Config
      * Returns a setting
      *
      * @param int-mask-of<self::FLAG_*> $flags See class FLAG_* constants.
-     * @return ($key is 'paths' ? string[] : null)
+     * @return ($key is 'paths' ? array<string, string[]> : null)
      */
     public function get(string $key, int $flags = self::FLAG_PATHS_DEFAULT)
     {
         switch ($key) {
             case 'paths':
-                /** @var string[] $paths */
+                /** @var array<string, string[]> $paths */
                 $paths = $this->config['paths'] ?? [];
                 return $this->processFixtureExtensionPaths($paths, $flags);
             default:
@@ -101,7 +101,7 @@ final class Config
     /**
      * @param int-mask-of<self::FLAG_*> $flags
      *
-     * @return array{}|array{config: non-empty-array<string, array<string>|null>}
+     * @return array{}|array{config: non-empty-array<string, array<string, array<string>>|null>}
      */
     public function all(int $flags = self::FLAG_PATHS_DEFAULT)
     {
@@ -132,16 +132,19 @@ final class Config
     }
 
     /**
-     * @param string[] $paths
+     * @param array<string, string[]> $paths
      * @param int-mask-of<self::FLAG_*> $flags
      *
-     * @return string[]
+     * @return array<string, string[]>
      */
     protected function processFixtureExtensionPaths(array $paths, int $flags = 0): array
     {
         $relativePaths = $this->isRelativePathsFlag($flags);
-        $paths = array_values($paths);
-        array_walk($paths, fn(string $value): string => rtrim(($relativePaths ? $value : $this->realpath($value)), '/\\'));
+        $returnPaths = [];
+        foreach ($paths as $path => $selection) {
+            $path = rtrim(($relativePaths ? $path : $this->realpath($path)), '/\\');
+            $returnPaths[$path] = $selection;
+        }
         return $paths;
     }
 
@@ -224,10 +227,23 @@ final class Config
         $basePath = '/fake/root';
         $config = new self($basePath);
         $validPaths = [];
-        foreach ($fixtureExtensionPaths as $path) {
-            if (!is_string($path)) {
+        foreach ($fixtureExtensionPaths as $path => $selection) {
+            if (!is_array($selection)) {
+                $path = $selection;
+                $selection = [
+                    'autoload',
+                ];
+            }
+            if (!is_string($path) || $path === '') {
                 continue;
             }
+            $selection = array_values($selection);
+            array_walk($selection, function (&$value): void {
+                if (is_string($value) || (is_object($value) && $value instanceof \Stringable)) {
+                    $value = strtolower((string)$value);
+                }
+            });
+            $selection = array_filter($selection, fn($value) => in_array($value, ['autoload', 'autoload-dev']));
             $normalizedPath = $config->normalizePath($path);
             $realPath = $config->normalizePath($config->realpath($normalizedPath));
             if (!str_starts_with($realPath, $basePath . '/')) {
@@ -237,7 +253,14 @@ final class Config
                 ));
                 continue;
             }
-            $validPaths[] = $path;
+            if ($selection === []) {
+                $io->write(sprintf(
+                    '<notice>No adopt mode selected for "%s" which means that none will be adopted, but package still taken as fixture package.".</notice>',
+                    $path,
+                ), true, $io::VERBOSE);
+                continue;
+            }
+            $validPaths[$path] = $selection;
         }
         $rootPackageExtraConfig['sbuerk/fixture-packages']['paths'] = $validPaths;
         return $rootPackageExtraConfig;
