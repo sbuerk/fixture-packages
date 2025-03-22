@@ -172,7 +172,7 @@ final class FixturePackagesService
         if (file_exists($dataPath . '/AvailableFixturePackages.php')
             && hash_file('sha256', $dataPath . '/AvailableFixturePackages.php') !== hash_file('sha256', __DIR__ . '/../../tmpl/AvailableFixturePackages.php')
         ) {
-            $filesystem->unlink($dataPath . '/AvailableFixturePackages');
+            $filesystem->unlink($dataPath . '/AvailableFixturePackages.php');
             $io->info('>> [sbuerk/fixture-packages] AvailableFixturePackages.php exists, but content changed. Remove it.');
         }
         if (!file_exists($dataPath . '/AvailableFixturePackages.php')) {
