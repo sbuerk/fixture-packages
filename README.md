@@ -19,6 +19,7 @@ tests based on [PHPUnit](https://github.com/sebastianbergmann/phpunit).
 - [Generated files](#generated-files)
   - [Use generated `FixturePackages`](#use-generated-fixturepackages)
     - [[TYPO3] Functional testing with typo3/testing-framework](#typo3-functional-testing-with-typo3testing-framework)
+- [FAQ - Frequent Asked Questions](#faq---frequent-asked-questions)
 
 ## Installation
 
@@ -72,14 +73,67 @@ schema to the extra-section and is used to configure paths to scan for extension
 ```json
 {
   "extra": {
-    "sbuerk/fixture-packages": [
-      "multiple-packages-in-folder/*",
-      "pattern-matching/*/matching/same/subpath-in-multiple-places/*",
-      "packages/direct-package-path-containing-a-composer.json"
-    ]
+    "sbuerk/fixture-packages": {
+      "paths": {
+        "multiple-packages-in-folder/*": [
+          "autoload"
+        ],
+        "pattern-matching/*/matching/same/subpath-in-multiple-places/*": [
+          "autoload",
+          "autoload-dev"
+        ],
+        "packages/direct-package-path-containing-a-composer.json": [
+          "autoload-dev"
+        ]
+      }
+    }
   }
 }
 ```
+
+If adopting only `autoload` for all path configuration, simplified form **may** be used:
+
+```json
+{
+  "extra": {
+    "sbuerk/fixture-packages": {
+      "paths": [
+        "multiple-packages-in-folder/*",
+        "pattern-matching/*/matching/same/subpath-in-multiple-places/*",
+        "packages/direct-package-path-containing-a-composer.json"
+      ]
+    }
+  }
+}
+```
+
+which matches following **recommended** syntax, albeit beeing more to write but more expressive:
+
+```json
+{
+  "extra": {
+    "sbuerk/fixture-packages": {
+      "paths": {
+        "multiple-packages-in-folder/*": [
+          "autoload"
+        ],
+        "pattern-matching/*/matching/same/subpath-in-multiple-places/*": [
+          "autoload"
+        ],
+        "packages/direct-package-path-containing-a-composer.json": [
+          "autoload"
+        ]
+      }
+    }
+  }
+}
+```
+
+> [!NOTE]
+> It is possible to mix them, but requires to use integer indexes,
+> leading to a more brain-melting syntax and should be avoided, as
+> the support is only a co-existence and not technically disallowed
+> for now.
 
 ## Generated files
 
@@ -219,3 +273,15 @@ instead of something like
         'vendor/root-package',
     ];
 ```
+
+## FAQ - Frequent Asked Questions
+
+**Q: Will it be possible to add packages autoload to root package autoload in the future?**
+
+No. This package is a pure helper during development and there is no need for the provided
+namespace adoption in productions. Adopting non fully required packages namespaces or the
+`autoload-dev` namespaces from packages in production (`--no-dev` mode) leads to unforeseeable
+side effects. When this is needed, move your class to the autoload namespace or ask package
+maintainers to do so.
+
+This is also the reason why this plugin only operates in `--dev` mode.

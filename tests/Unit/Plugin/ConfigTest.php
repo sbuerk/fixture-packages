@@ -191,7 +191,7 @@ final class ConfigTest extends BaseUnitTestCase
                 '/absolute/path'
             ),
         ];
-        yield 'non-relative fixture exetension paths are discarded and outputs warning, but keeps relative paths' => [
+        yield 'non-relative fixture extension paths are discarded and outputs warning, but keeps relative paths' => [
             'extraConfig' => [
                 'sbuerk/fixture-packages' => [
                     'paths' => [
@@ -203,7 +203,9 @@ final class ConfigTest extends BaseUnitTestCase
             'expectedConfigArray' => [
                 'sbuerk/fixture-packages' => [
                     'paths' => [
-                        'relative/path',
+                        'relative/path' => [
+                            'autoload',
+                        ],
                     ],
                 ],
             ],
@@ -305,7 +307,9 @@ final class ConfigTest extends BaseUnitTestCase
                 ],
             ],
             'expectedPaths' => [
-                'relative/path',
+                'relative/path' => [
+                    'autoload',
+                ],
             ],
             'expectedOutput' => sprintf(
                 '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,

@@ -74,7 +74,7 @@ final class FixturePackagesServiceTest extends BaseUnitTestCase
             'extra' => [
                 'sbuerk/fixture-packages' => [
                     'paths' => [
-                        'Fixtures/Extensions/*',
+                        'Fixtures/Extensions/*' => ['autoload'],
                     ],
                 ],
             ],
@@ -89,7 +89,7 @@ final class FixturePackagesServiceTest extends BaseUnitTestCase
             'extra' => [
                 'sbuerk/fixture-packages' => [
                     'paths' => [
-                        'Fixtures/*/*',
+                        'Fixtures/*/*' => ['autoload'],
                     ],
                 ],
             ],
@@ -107,7 +107,7 @@ final class FixturePackagesServiceTest extends BaseUnitTestCase
             'extra' => [
                 'sbuerk/fixture-packages' => [
                     'paths' => [
-                        'Packages/*/Fixtures/Extensions/*',
+                        'Packages/*/Fixtures/Extensions/*' => ['autoload'],
                     ],
                 ],
             ],
@@ -122,7 +122,7 @@ final class FixturePackagesServiceTest extends BaseUnitTestCase
             'extra' => [
                 'sbuerk/fixture-packages' => [
                     'paths' => [
-                        'Fixtures/Extensions/extension-one',
+                        'Fixtures/Extensions/extension-one' => ['autoload'],
                     ],
                 ],
             ],
@@ -160,7 +160,7 @@ final class FixturePackagesServiceTest extends BaseUnitTestCase
         $invokableCreateRepositoryManager = $this->createClassMethodInvoker($subject, 'createRepositoryManager');
         $invokableCreateRepositoryForPath = $this->createClassMethodInvoker($subject, 'createRepositoryForPath');
         $repositoryManager = $invokableCreateRepositoryManager->invoke($subject, $bufferedIo, $composer);
-        $repository = $invokableCreateRepositoryForPath->invoke($subject, $repositoryManager, $composer, $bufferedIo, $path);
+        $repository = $invokableCreateRepositoryForPath->invoke($subject, $repositoryManager, $composer, $bufferedIo, $path, ['autoload']);
         self::assertInstanceOf(RepositoryInterface::class, $repository);
         self::assertInstanceOf(FixturePathRepository::class, $repository);
         self::assertSame($expectedPackageNames, $this->getRepositoryPackageNames($repository));
