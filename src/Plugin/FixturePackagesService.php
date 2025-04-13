@@ -43,7 +43,7 @@ final class FixturePackagesService
             // Only adopt namespace in development mode.
             return;
         }
-        /** @varr PackageInterface[] $adoptedPackages */
+        /** @var PackageInterface[] $adoptedPackages */
         $adoptedPackages = [];
         $config = Config::load($composer, $io);
         $autoloadMerger = new AutoloadMerger();
