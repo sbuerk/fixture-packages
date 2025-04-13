@@ -173,65 +173,6 @@ final class ConfigTest extends BaseUnitTestCase
             ],
             'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
         ];
-        yield 'non-relative fixture extension paths are discarded and outputs warning' => [
-            'extraConfig' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        '/absolute/path',
-                    ],
-                ],
-            ],
-            'expectedConfigArray' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [],
-                ],
-            ],
-            'expectedOutput' => sprintf(
-                '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,
-                '/absolute/path'
-            ),
-        ];
-        yield 'non-relative fixture extension paths are discarded and outputs warning, but keeps relative paths' => [
-            'extraConfig' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        '/absolute/path',
-                        'relative/path',
-                    ],
-                ],
-            ],
-            'expectedConfigArray' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        'relative/path' => [
-                            'autoload',
-                        ],
-                    ],
-                ],
-            ],
-            'expectedOutput' => sprintf(
-                '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,
-                '/absolute/path'
-            ),
-        ];
-        yield 'relative path leaving composer root is discarded and outputs warning' => [
-            'extraConfig' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        'relative/../../path-outside-composer-root',
-                    ],
-                ],
-            ],
-            'expectedConfigArray' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [],
-                ],
-            ],
-            'expectedOutput' => sprintf(
-                '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,
-                'relative/../../path-outside-composer-root'
-            ),
-        ];
     }
 
     /**
@@ -282,53 +223,6 @@ final class ConfigTest extends BaseUnitTestCase
             ],
             'expectedPaths' => [],
             'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
-        ];
-        yield 'non-relative fixture extension paths are discarded and outputs warning' => [
-            'extraConfig' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        '/absolute/path',
-                    ],
-                ],
-            ],
-            'expectedPaths' => [],
-            'expectedOutput' => sprintf(
-                '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,
-                '/absolute/path'
-            ),
-        ];
-        yield 'non-relative fixture exetension paths are discarded and outputs warning, but keeps relative paths' => [
-            'extraConfig' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        '/absolute/path',
-                        'relative/path',
-                    ],
-                ],
-            ],
-            'expectedPaths' => [
-                'relative/path' => [
-                    'autoload',
-                ],
-            ],
-            'expectedOutput' => sprintf(
-                '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,
-                '/absolute/path'
-            ),
-        ];
-        yield 'relative path leaving composer root is discarded and outputs warning' => [
-            'extraConfig' => [
-                'sbuerk/fixture-packages' => [
-                    'paths' => [
-                        'relative/../../path-outside-composer-root',
-                    ],
-                ],
-            ],
-            'expectedPaths' => [],
-            'expectedOutput' => sprintf(
-                '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>' . PHP_EOL,
-                'relative/../../path-outside-composer-root'
-            ),
         ];
     }
 

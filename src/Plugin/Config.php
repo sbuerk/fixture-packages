@@ -244,15 +244,6 @@ final class Config
                 }
             });
             $selection = array_filter($selection, fn($value) => in_array($value, ['autoload', 'autoload-dev']));
-            $normalizedPath = $config->normalizePath($path);
-            $realPath = $config->normalizePath($config->realpath($normalizedPath));
-            if (!str_starts_with($realPath, $basePath . '/')) {
-                $io->writeError(sprintf(
-                    '<warning>Test fixture extension path must be a subdirectory of Composer root directory. Skip "%s".</warning>',
-                    $path
-                ));
-                continue;
-            }
             if ($selection === []) {
                 $io->write(sprintf(
                     '<notice>No adopt mode selected for "%s" which means that none will be adopted, but package still taken as fixture package.".</notice>',
