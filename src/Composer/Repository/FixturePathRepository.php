@@ -172,7 +172,7 @@ final class FixturePathRepository extends ArrayRepository implements Configurabl
             // copy symlink/relative options to transport options
             $package['transport-options'] = array_intersect_key($this->options, ['symlink' => true, 'relative' => true]);
             // use the version provided as option if available
-            if (isset($package['name'], $this->options['versions'][$package['name']])) {
+            if (isset($package['name']) && is_string($package['name']) && isset($this->options['versions'][$package['name']])) {
                 $package['version'] = $this->options['versions'][$package['name']];
             }
 
