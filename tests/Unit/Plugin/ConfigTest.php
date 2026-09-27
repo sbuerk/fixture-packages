@@ -116,6 +116,16 @@ final class ConfigTest extends BaseUnitTestCase
             'path' => '/',
             'expectedPath' => '/',
         ];
+        yield 'Current directory path returns baseDir' => [
+            'baseDir' => '/fake/root',
+            'path' => './',
+            'expectedPath' => '/fake/root',
+        ];
+        yield 'Relative path is prefixed with baseDir and trimmed' => [
+            'baseDir' => '/fake/root',
+            'path' => 'some/relative/path/',
+            'expectedPath' => '/fake/root/some/relative/path',
+        ];
     }
 
     /**
@@ -193,7 +203,8 @@ final class ConfigTest extends BaseUnitTestCase
     {
         yield 'Empty extra config returns empty array' => [
             'extraConfig' => [],
-            'expectedPaths' => [],
+            'expectedRelativePaths' => [],
+            'expectedAbsolutePaths' => [],
             'expectedOutput' => '',
         ];
         yield 'Other extra configuration are kept' => [
@@ -202,7 +213,8 @@ final class ConfigTest extends BaseUnitTestCase
                     'extension-key' => 'some_extension_key',
                 ],
             ],
-            'expectedPaths' => [],
+            'expectedRelativePaths' => [],
+            'expectedAbsolutePaths' => [],
             'expectedOutput' => '',
         ];
         yield 'Non-array extra->sbuerk/fixture-packages/paths value is removed' => [
@@ -211,7 +223,8 @@ final class ConfigTest extends BaseUnitTestCase
                     'paths' => false,
                 ],
             ],
-            'expectedPaths' => [],
+            'expectedRelativePaths' => [],
+            'expectedAbsolutePaths' => [],
             'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
         ];
         yield 'Non-array extra->sbuerk/fixture-packages/paths value is removed keeping other settings' => [
@@ -221,8 +234,140 @@ final class ConfigTest extends BaseUnitTestCase
                     'paths' => false,
                 ],
             ],
-            'expectedPaths' => [],
+            'expectedRelativePaths' => [],
+            'expectedAbsolutePaths' => [],
             'expectedOutput' => '<warning>extra->sbuerk/fixture-packages/paths must be an array, "boolean" given.</warning>' . PHP_EOL,
+        ];
+        yield 'Path without trailing slash' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        'Tests/Functional/Fixtures/Extensions/*' => ['autoload'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                'Tests/Functional/Fixtures/Extensions/*' => ['autoload'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root/Tests/Functional/Fixtures/Extensions/*' => ['autoload'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Path with trailing slash is trimmed' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        'Tests/Functional/Fixtures/Extensions/' => ['autoload'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                'Tests/Functional/Fixtures/Extensions' => ['autoload'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root/Tests/Functional/Fixtures/Extensions' => ['autoload'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Path with trailing backslash is trimmed' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        'Tests\\Functional\\Fixtures\\Extensions\\' => ['autoload-dev'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                'Tests/Functional/Fixtures/Extensions' => ['autoload-dev'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root/Tests/Functional/Fixtures/Extensions' => ['autoload-dev'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Path list syntax with trailing slash is trimmed' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        'Tests/Functional/Fixtures/Extensions/*/',
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                'Tests/Functional/Fixtures/Extensions/*' => ['autoload'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root/Tests/Functional/Fixtures/Extensions/*' => ['autoload'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Path outside project is kept relative or resolved against base dir' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        '../other-project/Fixtures/*/' => ['autoload', 'autoload-dev'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                '../other-project/Fixtures/*' => ['autoload', 'autoload-dev'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root/../other-project/Fixtures/*' => ['autoload', 'autoload-dev'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Current directory path is kept as current directory or resolved to base dir' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        './' => ['autoload'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                '.' => ['autoload'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root' => ['autoload'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Selections of paths normalized to the same path are merged' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        'Tests/Fixtures/' => ['autoload'],
+                        'Tests/Fixtures' => ['autoload-dev', 'autoload'],
+                        '/fake/root/Tests/Fixtures' => ['autoload-dev'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                'Tests/Fixtures' => ['autoload', 'autoload-dev'],
+                '/fake/root/Tests/Fixtures' => ['autoload-dev'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/fake/root/Tests/Fixtures' => ['autoload', 'autoload-dev'],
+            ],
+            'expectedOutput' => '',
+        ];
+        yield 'Absolute path is kept absolute and trimmed' => [
+            'extraConfig' => [
+                'sbuerk/fixture-packages' => [
+                    'paths' => [
+                        '/some/absolute/Fixtures/' => ['autoload'],
+                    ],
+                ],
+            ],
+            'expectedRelativePaths' => [
+                '/some/absolute/Fixtures' => ['autoload'],
+            ],
+            'expectedAbsolutePaths' => [
+                '/some/absolute/Fixtures' => ['autoload'],
+            ],
+            'expectedOutput' => '',
         ];
     }
 
@@ -230,7 +375,7 @@ final class ConfigTest extends BaseUnitTestCase
      * @dataProvider loadCreatesConfigWithExpectedPathsDataSets
      * @test
      */
-    public function loadCreatesConfigWithExpectedPaths(array $extraConfig, array $expectedPaths, string $expectedOutput): void
+    public function loadCreatesConfigWithExpectedPaths(array $extraConfig, array $expectedRelativePaths, array $expectedAbsolutePaths, string $expectedOutput): void
     {
         $rootPackage = new RootPackage('fake/package', '1.0.0', '1.0.0.0');
         $rootPackage->setExtra($extraConfig);
@@ -241,7 +386,13 @@ final class ConfigTest extends BaseUnitTestCase
         $bufferedIO = new BufferIO();
         $config = Config::load($composer, $bufferedIO);
         self::assertInstanceOf(Config::class, $config);
-        self::assertSame($expectedPaths, $config->paths(Config::FLAG_PATHS_RELATIVE));
+        self::assertSame($expectedRelativePaths, $config->paths(Config::FLAG_PATHS_RELATIVE));
+        self::assertSame($expectedRelativePaths, $config->get('paths', Config::FLAG_PATHS_RELATIVE));
+        self::assertSame(['config' => ['paths' => $expectedRelativePaths]], $config->all(Config::FLAG_PATHS_RELATIVE));
+        self::assertSame($expectedAbsolutePaths, $config->paths());
+        self::assertSame($expectedAbsolutePaths, $config->paths(Config::FLAG_PATHS_DEFAULT));
+        self::assertSame($expectedAbsolutePaths, $config->get('paths'));
+        self::assertSame(['config' => ['paths' => $expectedAbsolutePaths]], $config->all());
         self::assertSame($expectedOutput, $bufferedIO->getOutput());
     }
 }
