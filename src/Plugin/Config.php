@@ -142,10 +142,21 @@ final class Config
         $relativePaths = $this->isRelativePathsFlag($flags);
         $returnPaths = [];
         foreach ($paths as $path => $selection) {
-            $path = rtrim(($relativePaths ? $path : $this->realpath($path)), '/\\');
-            $returnPaths[$path] = $selection;
+            if ($relativePaths) {
+                $path = $this->normalizePath((string)$path);
+                if ($path === '') {
+                    // Keep the current directory, an empty url is not a valid fixture-path repository url.
+                    $path = '.';
+                }
+            } else {
+                $path = $this->realpath((string)$path);
+            }
+            // Different notations of the same path must not drop the selection of the former ones.
+            $returnPaths[$path] = isset($returnPaths[$path])
+                ? array_values(array_unique(array_merge($returnPaths[$path], $selection)))
+                : $selection;
         }
-        return $paths;
+        return $returnPaths;
     }
 
     /**
@@ -155,7 +166,7 @@ final class Config
      */
     private function isRelativePathsFlag(int $flags): bool
     {
-        return ($flags & self::FLAG_PATHS_RELATIVE) === 1;
+        return ($flags & self::FLAG_PATHS_RELATIVE) !== 0;
     }
 
     /**
@@ -165,10 +176,10 @@ final class Config
      */
     private function realpath(string $path): string
     {
+        $path = $this->normalizePath($path);
         if ($path === '') {
             return $this->baseDir;
         }
-        $path = $this->normalizePath($path);
         if ($path[0] === '/' || (!empty($path[1]) && $path[1] === ':')) {
             return $path;
         }
@@ -224,8 +235,6 @@ final class Config
         if (empty($fixtureExtensionPaths)) {
             return $rootPackageExtraConfig;
         }
-        $basePath = '/fake/root';
-        $config = new self($basePath);
         $validPaths = [];
         foreach ($fixtureExtensionPaths as $path => $selection) {
             if (!is_array($selection)) {
